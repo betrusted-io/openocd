@@ -91,8 +91,14 @@ static int speed_coeff = 113714;
 static int speed_offset = 28;
 static unsigned int jtag_delay;
 
+static uint32_t lev = 0;
+
 static bb_value_t bcm2835gpio_read(void)
 {
+        GPIO_SET = 0;
+        GPIO_SET = 0;
+        GPIO_SET = 0;
+	
 	return (GPIO_LEV & 1<<tdo_gpio) ? BB_HIGH : BB_LOW;
 }
 
@@ -101,6 +107,7 @@ static int bcm2835gpio_write(int tck, int tms, int tdi)
 	uint32_t set = tck<<tck_gpio | tms<<tms_gpio | tdi<<tdi_gpio;
 	uint32_t clear = !tck<<tck_gpio | !tms<<tms_gpio | !tdi<<tdi_gpio;
 
+	GPIO_SET = 0;
 	GPIO_SET = set;
 	GPIO_CLR = clear;
 
@@ -115,6 +122,7 @@ static int bcm2835gpio_swd_write(int tck, int tms, int tdi)
 	uint32_t set = tck<<swclk_gpio | tdi<<swdio_gpio;
 	uint32_t clear = !tck<<swclk_gpio | !tdi<<swdio_gpio;
 
+	lev = GPIO_LEV;
 	GPIO_SET = set;
 	GPIO_CLR = clear;
 
@@ -487,7 +495,7 @@ static int bcm2835gpio_init(void)
 	}
 
 	/* set 4mA drive strength, slew rate limited, hysteresis on */
-	pads_base[BCM2835_PADS_GPIO_0_27_OFFSET] = 0x5a000008 + 1;
+	pads_base[BCM2835_PADS_GPIO_0_27_OFFSET] = 0x5a000008 + 4;
 
 	tdo_gpio_mode = MODE_GPIO(tdo_gpio);
 	tdi_gpio_mode = MODE_GPIO(tdi_gpio);
